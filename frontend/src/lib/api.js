@@ -1,4 +1,10 @@
-export const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+// Production API on Render. Locally (npm run dev) the app talks to your own backend instead.
+const PRODUCTION_API = 'https://roadsense-api-us6q.onrender.com'
+const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+
+export const API_URL = (
+  import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:8000' : PRODUCTION_API)
+).replace(/\/$/, '')
 
 async function getJson(path, timeoutMs = 15000) {
   const ctrl = new AbortController()
