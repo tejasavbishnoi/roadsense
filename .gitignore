@@ -26,3 +26,7 @@ frontend/dist/
 # OS / editors
 .DS_Store
 .idea/
+
+# Local scratch from unpacking Colab results
+_results/
+results.zip

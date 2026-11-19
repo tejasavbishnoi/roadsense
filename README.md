@@ -36,14 +36,50 @@ flowchart LR
 
 ## Results
 
-> Fill this in from `training/results/test/report.md` after training.
+Evaluated on **400 held-out test images** (block split, never seen in training). Training set: 3,000 images from RDD2022 India.
 
 | Model | mAP@50 | mAP@50-95 | Precision | Recall |
 |---|---|---|---|---|
-| Baseline (YOLO26n, default settings) | – | – | – | – |
-| Improved (YOLO26s + road-specific augmentation) | – | – | – | – |
+| Baseline (YOLO26n, default settings) | _see note_ | | | |
+| **Improved (YOLO26s + road-specific augmentation)** | **0.406** | **0.164** | **0.499** | **0.377** |
 
-**Per class** and **error analysis** (recall on dark vs bright photos, small vs large defects) are in the report and on the site's model card.
+**Per damage type**
+
+| Damage | Precision | Recall | AP@50 | Test instances |
+|---|---|---|---|---|
+| Alligator crack | 0.683 | 0.649 | **0.694** | 205 |
+| Pothole | 0.630 | 0.398 | 0.455 | 337 |
+| Longitudinal crack | 0.520 | 0.320 | 0.380 | 153 |
+| Transverse crack | 0.164 | 0.143 | 0.096 | 7 |
+
+**Where it struggles** (recall at confidence 0.25, IoU 0.5)
+
+| Slice | Recall | Instances |
+|---|---|---|
+| Dark photos | 0.380 | 179 |
+| Normal photos | 0.444 | 241 |
+| Bright photos | 0.411 | 282 |
+| Small defects (< 32×32 px) | 0.429 | 35 |
+| Medium defects | 0.287 | 286 |
+| Large defects (> 96×96 px) | 0.509 | 381 |
+
+**What the numbers say**
+
+- **Alligator cracks are easiest** (AP@50 0.69): large, textured and visually distinctive.
+- **Transverse cracks fail** (AP@50 0.10) because there are only 56 training examples against 1,286 longitudinal ones. This is a data problem, not a model problem; collecting more examples or oversampling that class is the fix.
+- **Darker photos lose about 6 points of recall** compared with normal lighting.
+- **Medium-sized defects are hardest** (recall 0.29). They are mostly thin cracks, where a box that is slightly off fails the 50% overlap test.
+- **Precision is higher than recall**: when the model flags damage it is usually right, but it misses some. For a road survey, lowering the confidence threshold (the slider on the site) trades precision for recall.
+
+Example failures (green = ground truth, red = prediction):
+
+<p>
+  <img src="docs/eval/failure-1.jpg" width="32%" alt="Failure case 1" />
+  <img src="docs/eval/failure-2.jpg" width="32%" alt="Failure case 2" />
+  <img src="docs/eval/failure-3.jpg" width="32%" alt="Failure case 3" />
+</p>
+
+Full report: [`docs/eval/report.md`](docs/eval/report.md). The live site's model card shows the same numbers.
 
 ## Key decisions 
 

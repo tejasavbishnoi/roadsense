@@ -1,0 +1,121 @@
+{
+  "model": "best.pt",
+  "architecture": "yolo26s",
+  "evaluated_on": "test",
+  "date": "2026-11-19",
+  "classes": [
+    "longitudinal_crack",
+    "transverse_crack",
+    "alligator_crack",
+    "pothole"
+  ],
+  "overall": {
+    "map50": 0.4064,
+    "map50_95": 0.164,
+    "precision": 0.499,
+    "recall": 0.3774
+  },
+  "per_class": [
+    {
+      "name": "longitudinal_crack",
+      "precision": 0.5199,
+      "recall": 0.3203,
+      "ap50": 0.3799,
+      "ap50_95": 0.1579
+    },
+    {
+      "name": "transverse_crack",
+      "precision": 0.1637,
+      "recall": 0.1429,
+      "ap50": 0.0962,
+      "ap50_95": 0.0418
+    },
+    {
+      "name": "alligator_crack",
+      "precision": 0.6828,
+      "recall": 0.6488,
+      "ap50": 0.6942,
+      "ap50_95": 0.2942
+    },
+    {
+      "name": "pothole",
+      "precision": 0.6296,
+      "recall": 0.3976,
+      "ap50": 0.4554,
+      "ap50_95": 0.1619
+    }
+  ],
+  "analysis": {
+    "by_lighting": {
+      "dark": {
+        "recall": 0.3799,
+        "instances": 179
+      },
+      "normal": {
+        "recall": 0.444,
+        "instances": 241
+      },
+      "bright": {
+        "recall": 0.4113,
+        "instances": 282
+      }
+    },
+    "by_size": {
+      "small": {
+        "recall": 0.4286,
+        "instances": 35
+      },
+      "medium": {
+        "recall": 0.2867,
+        "instances": 286
+      },
+      "large": {
+        "recall": 0.5092,
+        "instances": 381
+      }
+    }
+  },
+  "speed_ms": {
+    "preprocess": 1.19,
+    "inference": 9.45,
+    "loss": 0.0,
+    "postprocess": 1.37
+  },
+  "dataset": {
+    "countries": [
+      "India"
+    ],
+    "classes": [
+      "longitudinal_crack",
+      "transverse_crack",
+      "alligator_crack",
+      "pothole"
+    ],
+    "splits": {
+      "train": {
+        "pothole": 2576,
+        "alligator_crack": 1634,
+        "longitudinal_crack": 1286,
+        "transverse_crack": 56,
+        "_images": 3000,
+        "_background_images": 395
+      },
+      "val": {
+        "longitudinal_crack": 116,
+        "alligator_crack": 182,
+        "transverse_crack": 5,
+        "pothole": 274,
+        "_images": 306,
+        "_background_images": 34
+      },
+      "test": {
+        "pothole": 337,
+        "alligator_crack": 205,
+        "longitudinal_crack": 153,
+        "transverse_crack": 7,
+        "_images": 400,
+        "_background_images": 54
+      }
+    }
+  }
+}
