@@ -45,7 +45,7 @@ flowchart LR
 
 **Per class** and **error analysis** (recall on dark vs bright photos, small vs large defects) are in the report and on the site's model card.
 
-## Key decisions (good interview material)
+## Key decisions 
 
 - **Block splitting, not random splitting.** RDD images are consecutive dashcam frames. A random split puts near-identical frames in both train and test, which inflates the scores. `prepare_data.py` groups every 50 consecutive frames and splits by group.
 - **Baseline first.** Every improvement is measured against a plain fine-tuned YOLO26n, and all runs are tracked in MLflow.
