@@ -34,6 +34,8 @@ BASE_URL = (
     "https://bigdatacup.s3.ap-northeast-1.amazonaws.com/2022/CRDDC2022/RDD2022/"
     "Country_Specific_Data_CRDDC2022/RDD2022_{country}.zip"
 )
+# Official mirror: the full RDD2022 release on Figshare (article 21431547, ~13 GB)
+FIGSHARE_FULL_URL = "https://ndownloader.figshare.com/files/38030910"
 
 # RDD code -> (class id, name). Order matters: it defines the model's class ids.
 CLASS_MAP = {
@@ -47,31 +49,70 @@ BLOCK_SIZE = 50
 SPLITS = {"train": 0.8, "val": 0.1, "test": 0.1}
 
 
+def _fetch(url: str, dest: Path) -> None:
+    """Download with a progress line. Writes to a .part file so a failed download never looks complete."""
+    print(f"[download] {url}")
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (RoadSense dataset prep)"})
+    tmp = dest.with_suffix(dest.suffix + ".part")
+    with urllib.request.urlopen(req, timeout=60) as resp, open(tmp, "wb") as out:
+        total = int(resp.headers.get("Content-Length") or 0)
+        done, last = 0, -1
+        while chunk := resp.read(1 << 22):  # 4 MB
+            out.write(chunk)
+            done += len(chunk)
+            pct = done * 100 // total if total else -1
+            if pct != last:
+                last = pct
+                size = f"{done / 1e9:.2f} GB" + (f" / {total / 1e9:.2f} GB" if total else "")
+                print(f"\r  {pct:3d}%  {size}" if total else f"\r  {size}", end="", flush=True)
+    print()
+    tmp.rename(dest)
+
+
+def _extract_nested(extract_dir: Path) -> None:
+    # Country zips sometimes contain another zip inside.
+    for inner in list(extract_dir.rglob("*.zip")):
+        with zipfile.ZipFile(inner) as zf:
+            zf.extractall(inner.parent)
+
+
 def download(country: str, cache: Path) -> Path:
+    """Get one RDD2022 country subset. Tries the per-country zip on the official
+    S3 bucket first; if that's refused, falls back to the full dataset on
+    Figshare (13 GB) and extracts only this country from it."""
     cache.mkdir(parents=True, exist_ok=True)
-    zip_path = cache / f"RDD2022_{country}.zip"
-    if zip_path.exists() and zip_path.stat().st_size > 0:
-        print(f"[skip] {zip_path.name} already downloaded")
-    else:
-        url = BASE_URL.format(country=country)
-        print(f"[download] {url}")
-
-        def progress(blocks, block_size, total):
-            if total > 0:
-                pct = min(100, blocks * block_size * 100 // total)
-                print(f"\r  {pct:3d}%", end="", flush=True)
-
-        urllib.request.urlretrieve(url, zip_path, reporthook=progress)
-        print()
     extract_dir = cache / f"RDD2022_{country}"
-    if not extract_dir.exists():
+    if extract_dir.exists() and any(extract_dir.rglob("*.xml")):
+        print(f"[skip] {country} already extracted")
+        return extract_dir
+
+    zip_path = cache / f"RDD2022_{country}.zip"
+    if not zip_path.exists():
+        try:
+            _fetch(BASE_URL.format(country=country), zip_path)
+        except Exception as exc:  # noqa: BLE001 - any network failure -> mirror
+            print(f"[warn] official download failed ({exc}); using the Figshare mirror instead")
+
+    if zip_path.exists():
         print(f"[extract] {zip_path.name}")
         with zipfile.ZipFile(zip_path) as zf:
             zf.extractall(extract_dir)
-        # Some country zips contain a nested zip.
-        for inner in extract_dir.rglob("*.zip"):
-            with zipfile.ZipFile(inner) as zf:
-                zf.extractall(inner.parent)
+    else:
+        full = cache / "RDD2022_full.zip"
+        if not full.exists():
+            _fetch(FIGSHARE_FULL_URL, full)
+        print(f"[extract] {country} from {full.name} (only this country's files)")
+        with zipfile.ZipFile(full) as zf:
+            members = [m for m in zf.namelist()
+                       if country.lower() in [p.lower() for p in Path(m).parts]
+                       or Path(m).name.lower() == f"rdd2022_{country.lower()}.zip"]
+            if not members:
+                raise SystemExit(f"Could not find '{country}' inside {full.name}")
+            zf.extractall(extract_dir, members=members)
+    _extract_nested(extract_dir)
+
+    if not any(extract_dir.rglob("*.xml")):
+        raise SystemExit(f"No annotations found for {country} in {extract_dir}")
     return extract_dir
 
 
