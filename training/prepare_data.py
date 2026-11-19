@@ -103,11 +103,18 @@ def download(country: str, cache: Path) -> Path:
             _fetch(FIGSHARE_FULL_URL, full)
         print(f"[extract] {country} from {full.name} (only this country's files)")
         with zipfile.ZipFile(full) as zf:
-            members = [m for m in zf.namelist()
-                       if country.lower() in [p.lower() for p in Path(m).parts]
-                       or Path(m).name.lower() == f"rdd2022_{country.lower()}.zip"]
+            names = zf.namelist()
+            key = country.lower().replace("_", "")
+            # Match the country in any folder or file name, e.g. "India/", "India.zip",
+            # "RDD2022_India.zip", "RDD2022_all_countries/India/train/..."
+            members = [m for m in names
+                       if any(key in p.lower().replace("_", "") for p in Path(m).parts)]
             if not members:
+                print("First entries in the zip:")
+                for n in names[:40]:
+                    print("   ", n)
                 raise SystemExit(f"Could not find '{country}' inside {full.name}")
+            print(f"  {len(members)} entries for {country}")
             zf.extractall(extract_dir, members=members)
     _extract_nested(extract_dir)
 
