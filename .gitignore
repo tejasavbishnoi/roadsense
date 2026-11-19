@@ -30,3 +30,4 @@ frontend/dist/
 # Local scratch from unpacking Colab results
 _results/
 results.zip
+roadsense_baseline.zip

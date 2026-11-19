@@ -40,36 +40,40 @@ Evaluated on **400 held-out test images** (block split, never seen in training).
 
 | Model | mAP@50 | mAP@50-95 | Precision | Recall |
 |---|---|---|---|---|
-| Baseline (YOLO26n, default settings) | _see note_ | | | |
-| **Improved (YOLO26s + road-specific augmentation)** | **0.406** | **0.164** | **0.499** | **0.377** |
+| **YOLO26n, default augmentation (shipped)** | **0.423** | **0.188** | **0.572** | **0.377** |
+| YOLO26s, heavier road-specific augmentation | 0.406 | 0.164 | 0.499 | 0.377 |
 
-**Per damage type**
+**The bigger model with heavier augmentation did not win.** With only 3,000 training images, the larger YOLO26s has more capacity than the data supports, and the stronger brightness and mixup augmentation may blur thin cracks. The smaller model scores higher and runs about 3× faster on CPU, so it is the one deployed. Both runs are logged in MLflow.
+
+**Per damage type (shipped model)**
 
 | Damage | Precision | Recall | AP@50 | Test instances |
 |---|---|---|---|---|
-| Alligator crack | 0.683 | 0.649 | **0.694** | 205 |
-| Pothole | 0.630 | 0.398 | 0.455 | 337 |
-| Longitudinal crack | 0.520 | 0.320 | 0.380 | 153 |
-| Transverse crack | 0.164 | 0.143 | 0.096 | 7 |
+| Alligator crack | 0.722 | 0.646 | **0.720** | 205 |
+| Pothole | 0.617 | 0.397 | 0.468 | 337 |
+| Longitudinal crack | 0.536 | 0.320 | 0.349 | 153 |
+| Transverse crack | 0.411 | 0.143 | 0.156 | 7 |
 
 **Where it struggles** (recall at confidence 0.25, IoU 0.5)
 
 | Slice | Recall | Instances |
 |---|---|---|
 | Dark photos | 0.380 | 179 |
-| Normal photos | 0.444 | 241 |
-| Bright photos | 0.411 | 282 |
+| Normal photos | 0.539 | 241 |
+| Bright photos | 0.461 | 282 |
 | Small defects (< 32×32 px) | 0.429 | 35 |
-| Medium defects | 0.287 | 286 |
-| Large defects (> 96×96 px) | 0.509 | 381 |
+| Medium defects | 0.357 | 286 |
+| Large defects (> 96×96 px) | 0.554 | 381 |
 
 **What the numbers say**
 
-- **Alligator cracks are easiest** (AP@50 0.69): large, textured and visually distinctive.
-- **Transverse cracks fail** (AP@50 0.10) because there are only 56 training examples against 1,286 longitudinal ones. This is a data problem, not a model problem; collecting more examples or oversampling that class is the fix.
-- **Darker photos lose about 6 points of recall** compared with normal lighting.
-- **Medium-sized defects are hardest** (recall 0.29). They are mostly thin cracks, where a box that is slightly off fails the 50% overlap test.
-- **Precision is higher than recall**: when the model flags damage it is usually right, but it misses some. For a road survey, lowering the confidence threshold (the slider on the site) trades precision for recall.
+- **Alligator cracks are easiest** (AP@50 0.72): large, textured and visually distinctive.
+- **Transverse cracks are weakest** (AP@50 0.16) because there are only 56 training examples against 1,286 longitudinal ones. That's a data problem; more examples or oversampling that class is the fix.
+- **Dark photos lose about 16 points of recall** compared with normal lighting (0.38 vs 0.54), the clearest weakness to target next.
+- **Medium-sized defects are hard** (recall 0.36). They are mostly thin cracks, where a slightly-off box fails the 50% overlap test.
+- **Precision is higher than recall**: when the model flags damage it is usually right, but it misses some. Lowering the confidence threshold (the slider on the site) trades precision for recall.
+
+**Next experiments:** oversample transverse cracks, add the Czech and Japan subsets of RDD2022 for more data, and add my own night-time Pune photos.
 
 Example failures (green = ground truth, red = prediction):
 
@@ -84,8 +88,8 @@ Full report: [`docs/eval/report.md`](docs/eval/report.md). The live site's model
 ## Key decisions 
 
 - **Block splitting, not random splitting.** RDD images are consecutive dashcam frames. A random split puts near-identical frames in both train and test, which inflates the scores. `prepare_data.py` groups every 50 consecutive frames and splits by group.
-- **Baseline first.** Every improvement is measured against a plain fine-tuned YOLO26n, and all runs are tracked in MLflow.
-- **Road-specific augmentation.** Stronger brightness jitter (shadows, evening light), mild rotation (tilted phone) and mixup.
+- **Baseline first.** Every change is measured against a plain fine-tuned YOLO26n, and all runs are tracked in MLflow. That's how I found that the bigger model didn't help.
+- **Tested road-specific augmentation, and kept the simpler model.** Stronger brightness jitter (shadows, evening light), mild rotation (tilted phone) and mixup, combined with a bigger model, scored lower than the baseline on this dataset size, so the baseline ships.
 - **Error analysis beyond mAP.** Recall by lighting and object size shows *where* the model fails, not only how often.
 - **Condition score.** Detections are weighted by danger (potholes > alligator cracks > single cracks), confidence and size, then squashed to 0–100 so many hairline cracks can't outscore one big pothole.
 - **The API returns low-confidence detections and the UI filters them**, so the confidence slider updates instantly with no extra requests.
