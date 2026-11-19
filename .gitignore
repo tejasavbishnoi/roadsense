@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Data and training outputs (large, reproducible with training/prepare_data.py)
+datasets/
+training/runs/
+training/results/
+training/mlruns/
+*.zip
+
+# Keep the trained model and its metrics: the API needs them
+!backend/weights/best.pt
+!backend/weights/metrics.json
+
+# Node
+node_modules/
+frontend/dist/
+.env
+.env.local
+.vercel
+
+# OS / editors
+.DS_Store
+.idea/

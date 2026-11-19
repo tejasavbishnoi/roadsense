@@ -1,0 +1,8 @@
+# Run the API locally in Docker:  docker compose up --build  ->  http://localhost:8000/docs
+services:
+  api:
+    build: ./backend
+    ports:
+      - "8000:7860"
+    environment:
+      ALLOWED_ORIGINS: "http://localhost:5173"
