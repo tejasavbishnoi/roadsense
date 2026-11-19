@@ -1,11 +1,11 @@
 const STEPS = [
   {
     title: 'Collect and label',
-    body: 'Thousands of Indian road photos from the RDD2022 dataset, plus my own photos of Pune roads labelled box by box. Frames from the same drive are kept together when splitting, so test images are never near-copies of training images.',
+    body: '3,700 Indian road photos from the RDD2022 dataset, labelled box by box with four kinds of damage. Frames from the same drive are kept together when splitting, so test images are never near-copies of training images.',
   },
   {
     title: 'Train',
-    body: 'A YOLO detector pretrained on everyday objects is fine-tuned to spot four kinds of damage. Every experiment, from the small baseline to the final model, is tracked in MLflow.',
+    body: 'A YOLO26 detector pretrained on everyday objects is fine-tuned to spot the damage. Experiments are tracked in MLflow, and the small baseline beat a bigger model, so the small one ships.',
   },
   {
     title: 'Evaluate honestly',
@@ -13,7 +13,7 @@ const STEPS = [
   },
   {
     title: 'Score and serve',
-    body: 'A FastAPI service runs the model and turns each detection into a 0–100 condition score. Potholes and large defects count for more than hairline cracks.',
+    body: 'The model is exported to ONNX and served by FastAPI. Each detection feeds a 0–100 condition score, where potholes and large defects count for more than hairline cracks.',
   },
 ]
 
@@ -35,7 +35,7 @@ export default function HowItWorks() {
       </ol>
       <p className="stack">
         <span>Python</span><span>PyTorch</span><span>Ultralytics YOLO</span><span>OpenCV</span><span>MLflow</span>
-        <span>FastAPI</span><span>React</span><span>Docker</span><span>GitHub Actions</span>
+        <span>ONNX Runtime</span><span>FastAPI</span><span>React</span><span>Docker</span><span>GitHub Actions</span>
       </p>
     </section>
   )

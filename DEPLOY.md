@@ -48,7 +48,7 @@ Commit and push `weights/best.onnx`.
 1. Go to https://dashboard.render.com and choose **New → Blueprint**.
 2. Connect the `roadsense` GitHub repo. Render reads `render.yaml` and creates **roadsense-api** (free plan).
 3. Click **Apply**. The first build takes about 3–5 minutes.
-4. Open `https://roadsense-api.onrender.com/health` (your URL is shown on the service page).
+4. Open `https://roadsense-api-us6q.onrender.com/health (your URL is shown on the service page)` (your URL is shown on the service page).
    It should say `"model_loaded": true` and `"runtime": "onnx"`.
 
 The free instance sleeps after 15 minutes without traffic. The first request after that takes

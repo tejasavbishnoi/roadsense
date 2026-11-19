@@ -3,7 +3,7 @@
 RoadSense finds **potholes and cracks** in road photos and dashcam videos and rates the road from **Good** to **Critical**.
 It's an end-to-end machine learning project: dataset preparation, model training with experiment tracking, honest evaluation, a FastAPI inference service and a React web app, packaged with Docker and tested in CI.
 
-**Live demo:** [roadsense-tejasav.vercel.app](https://roadsense-tejasav.vercel.app) · **API docs:** [roadsense-api.onrender.com/docs](https://roadsense-api.onrender.com/docs)
+**Live demo:** [roadsense-tejasav.vercel.app](https://roadsense-tejasav.vercel.app) · **API docs:** [roadsense-api-us6q.onrender.com/docs](https://roadsense-api-us6q.onrender.com/docs)
 
 > The API runs on a free server that sleeps when idle, so the first request can take about a minute.
 
