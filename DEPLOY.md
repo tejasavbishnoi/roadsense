@@ -67,5 +67,5 @@ Every `git push` to `main` redeploys the frontend automatically.
 
 - Put the Vercel and Render links at the top of `README.md`
 - Copy the tables from `training/results/test/report.md` into **Results**
-- Add a screenshot or GIF to `docs/` and link it
+
 - Push again

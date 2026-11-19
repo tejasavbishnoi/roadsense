@@ -7,7 +7,6 @@ It's an end-to-end machine learning project: dataset preparation, model training
 
 > The API runs on a free server that sleeps when idle, so the first request can take about a minute.
 
-<!-- After deploying, add a real screenshot or GIF: docs/demo.gif -->
 
 ## What it does
 
