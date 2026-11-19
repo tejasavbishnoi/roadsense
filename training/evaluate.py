@@ -137,7 +137,15 @@ def main() -> None:
     img_paths = sorted(p for p in test_images.iterdir() if p.suffix.lower() in {".jpg", ".jpeg", ".png"})
     records = []
     size_tot = {k: [0, 0] for k in SIZE_BUCKETS}  # [hits, total]
-    for res in model.predict([str(p) for p in img_paths], conf=args.conf, stream=True, verbose=False):
+    try:  # free GPU memory held by validation before the per-image pass
+        import torch
+        torch.cuda.empty_cache()
+    except Exception:
+        pass
+    # One image at a time: passing the whole list makes Ultralytics batch it
+    # all at once, which runs a T4 out of memory.
+    for img_path in img_paths:
+        res = model.predict(str(img_path), conf=args.conf, verbose=False)[0]
         path = Path(res.path)
         img = res.orig_img
         h, w = img.shape[:2]
