@@ -54,4 +54,4 @@ function messageForStatus(status) {
 
 // The API returns every detection down to a low confidence; the UI filters locally.
 export const analyzeImage = (file, onProgress) => upload('/predict/image?conf=0.25', file, onProgress)
-export const analyzeVideo = (file, onProgress) => upload('/predict/video?conf=0.25&sample_fps=2', file, onProgress)
+export const analyzeVideo = (file, onProgress) => upload('/predict/video?conf=0.25', file, onProgress)

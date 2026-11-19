@@ -1,0 +1,22 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: roadsense-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements-deploy.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      # The free instance has a small CPU share, so keep videos short
+      - key: MAX_VIDEO_SECONDS
+        value: "20"
+      - key: VIDEO_SAMPLE_FPS
+        value: "1"
+      - key: ONNX_THREADS
+        value: "1"

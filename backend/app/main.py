@@ -82,6 +82,7 @@ def health(detector: Detector = Depends(get_detector)):
     return {
         "status": "ok" if detector.ready else "degraded",
         "model_loaded": detector.ready,
+        "runtime": getattr(detector, "backend", None),
         "classes": detector.names,
         "detail": detector.error,
         "version": VERSION,

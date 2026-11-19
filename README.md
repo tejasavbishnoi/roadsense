@@ -3,7 +3,7 @@
 RoadSense finds **potholes and cracks** in road photos and dashcam videos and rates the road from **Good** to **Critical**.
 It's an end-to-end machine learning project: dataset preparation, model training with experiment tracking, honest evaluation, a FastAPI inference service and a React web app, packaged with Docker and tested in CI.
 
-**Live demo:** _add your Vercel link here_ · **API docs:** _add your Hugging Face Space link_/docs
+**Live demo:** _add your Vercel link here_ · **API docs:** _add your Render link_/docs
 
 <!-- After deploying, add a real screenshot or GIF: docs/demo.gif -->
 
@@ -30,7 +30,7 @@ flowchart LR
   B --> C[train.py<br/>YOLO26 + MLflow]
   C --> D[evaluate.py<br/>mAP, error analysis]
   D --> E[(best.pt<br/>metrics.json)]
-  E --> F[FastAPI service<br/>Docker on HF Spaces]
+  E -->|export| E2[(best.onnx)] --> F[FastAPI + ONNX Runtime<br/>Render]
   F <--> G[React app<br/>Vercel]
 ```
 
@@ -93,7 +93,7 @@ Full report: [`docs/eval/report.md`](docs/eval/report.md). The live site's model
 - **Error analysis beyond mAP.** Recall by lighting and object size shows *where* the model fails, not only how often.
 - **Condition score.** Detections are weighted by danger (potholes > alligator cracks > single cracks), confidence and size, then squashed to 0–100 so many hairline cracks can't outscore one big pothole.
 - **The API returns low-confidence detections and the UI filters them**, so the confidence slider updates instantly with no extra requests.
-- **CPU-only PyTorch in Docker** keeps the image small enough for free hosting.
+- **ONNX export for deployment.** The API runs the model with ONNX Runtime instead of PyTorch: about 150 MB of RAM instead of about 1 GB, so it fits a free 512 MB server. `scripts/check_onnx.py` checks that the export gives the same detections as the PyTorch model.
 
 ## Project structure
 
@@ -152,7 +152,7 @@ npm run dev                                        # http://localhost:5173
 
 ## Tech stack
 
-Python · PyTorch · Ultralytics YOLO26 · OpenCV · MLflow · FastAPI · React · Vite · Docker · GitHub Actions · Hugging Face Spaces · Vercel
+Python · PyTorch · Ultralytics YOLO26 · OpenCV · MLflow · FastAPI · React · Vite · ONNX Runtime · Docker · GitHub Actions · Render · Vercel
 
 ## Credits
 

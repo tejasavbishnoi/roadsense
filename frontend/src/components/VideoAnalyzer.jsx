@@ -60,7 +60,7 @@ export default function VideoAnalyzer() {
         accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
         maxMb={60}
         title="Drop a dashcam or phone clip here"
-        hint="MP4, MOV or WebM, up to 60 MB. The first 60 seconds are analysed at 2 frames per second."
+        hint="MP4, MOV or WebM, up to 60 MB. Short clips work best; long videos are trimmed."
         onFile={run}
       />
     )
@@ -73,7 +73,7 @@ export default function VideoAnalyzer() {
         <div className="stage stage--video">
           <video ref={video} src={url} controls playsInline onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)} />
           {progress && (
-            <Progress progress={progress} processingText="Checking every half second of road. Longer clips take up to a minute…" onCancel={reset} />
+            <Progress progress={progress} processingText="Checking the road frame by frame. This can take a minute on the free server…" onCancel={reset} />
           )}
         </div>
         <div className="workspace__bar">
@@ -81,7 +81,7 @@ export default function VideoAnalyzer() {
           {result && (
             <span className="muted">
               {result.frames_analyzed} frames analysed in {(result.processing_ms / 1000).toFixed(1)} s
-              {result.truncated ? ', first 60 s only' : ''}
+              {result.truncated ? `, first ${Math.round(result.duration_s)} s only` : ''}
             </span>
           )}
           <button type="button" className="btn btn--ghost" onClick={reset}>

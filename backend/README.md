@@ -1,15 +1,3 @@
----
-title: RoadSense API
-emoji: 🛣️
-colorFrom: yellow
-colorTo: gray
-sdk: docker
-app_port: 7860
-pinned: false
-license: mit
-short_description: Pothole and road crack detection API (YOLO + FastAPI)
----
-
 # RoadSense API
 
 FastAPI service that serves the RoadSense YOLO model.
@@ -31,7 +19,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-The model is loaded from `weights/best.pt` (override with `MODEL_PATH`).
+The model is loaded from `weights/best.onnx` if it exists (ONNX Runtime, no PyTorch needed), otherwise `weights/best.pt` (override with `MODEL_PATH`). Production installs only `requirements-deploy.txt`.
 Model card data comes from `weights/metrics.json`, written by `training/evaluate.py`.
 
 ## Tests

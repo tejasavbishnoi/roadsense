@@ -1,11 +1,13 @@
 # Deploying RoadSense
 
-The backend goes to **Hugging Face Spaces** (free, 16 GB RAM, enough for PyTorch) and the frontend goes to **Vercel**.
-Render's free tier only has 512 MB of RAM, which isn't enough to load PyTorch and YOLO.
+The backend goes to **Render** (free web service) and the frontend goes to **Vercel**.
+
+Render's free instance has 512 MB of RAM, which isn't enough for PyTorch. So the model is
+**exported to ONNX** and served with ONNX Runtime, which needs about 150 MB.
 
 ## 0. Prerequisites
 
-- `backend/weights/best.pt` and `backend/weights/metrics.json` exist (from training)
+- `backend/weights/best.onnx` and `backend/weights/metrics.json` exist (see step 2a)
 - Code is pushed to GitHub
 
 ## 1. Push to GitHub
@@ -27,47 +29,43 @@ git push -u origin main
 
 GitHub Actions runs the tests, the frontend build and the Docker build automatically. Check the **Actions** tab.
 
-## 2. Backend on Hugging Face Spaces
+## 2. Backend on Render
 
-1. Make an account at https://huggingface.co/join.
-2. Create a Space at https://huggingface.co/new-space:
-   - Name: `roadsense-api`
-   - SDK: **Docker** (Blank template)
-   - Hardware: **CPU basic (free)**
-3. Create an access token with **write** permission at https://huggingface.co/settings/tokens.
-4. Upload the backend folder:
+### 2a. Export the model to ONNX (once per trained model)
 
 ```bash
-pip install -U huggingface_hub
-hf auth login                       # paste the token
 cd ~/roadsense/backend
-hf upload tejasavbishnoi/roadsense-api . . --repo-type=space \
-  --exclude ".venv/*" "__pycache__/*" ".pytest_cache/*"
+source .venv/bin/activate
+pip install onnxruntime
+yolo export model=weights/best.pt format=onnx imgsz=640 opset=20   # opset 20: fully supported by ONNX Runtime
+python scripts/check_onnx.py path/to/any_road_photo.jpg   # should print MATCH
 ```
 
-(If your Hugging Face username is different, use it in place of `tejasavbishnoi`.)
+Commit and push `weights/best.onnx`.
 
-5. The Space builds the Docker image (about 5–8 minutes). When it shows **Running**, open
-   `https://tejasavbishnoi-roadsense-api.hf.space/health`. It should say `"model_loaded": true`.
-6. In the Space's **Settings → Variables**, add `ALLOWED_ORIGINS` = your Vercel URL (after step 3), for example
-   `https://roadsense.vercel.app`. Leaving it as `*` also works.
+### 2b. Create the service
 
-Free Spaces sleep after 48 hours without visits. The first request after that takes about a minute; the website shows "API waking up" while it does.
+1. Go to https://dashboard.render.com and choose **New → Blueprint**.
+2. Connect the `roadsense` GitHub repo. Render reads `render.yaml` and creates **roadsense-api** (free plan).
+3. Click **Apply**. The first build takes about 3–5 minutes.
+4. Open `https://roadsense-api.onrender.com/health` (your URL is shown on the service page).
+   It should say `"model_loaded": true` and `"runtime": "onnx"`.
 
-To update the model later, run the same `hf upload` command again.
+The free instance sleeps after 15 minutes without traffic. The first request after that takes
+about a minute; the website shows "API waking up" while it does.
 
 ## 3. Frontend on Vercel
 
 1. Go to https://vercel.com/new and import the `roadsense` GitHub repo.
 2. **Root Directory**: `frontend`. Framework preset: **Vite** (detected automatically).
-3. Add the environment variable `VITE_API_URL` = `https://tejasavbishnoi-roadsense-api.hf.space`
+3. Add the environment variable `VITE_API_URL` = your Render URL, for example `https://roadsense-api.onrender.com`
 4. Click **Deploy**.
 
 Every `git push` to `main` redeploys the frontend automatically.
 
 ## 4. Finish the README
 
-- Put the Vercel and Space links at the top of `README.md`
+- Put the Vercel and Render links at the top of `README.md`
 - Copy the tables from `training/results/test/report.md` into **Results**
 - Add a screenshot or GIF to `docs/` and link it
 - Push again

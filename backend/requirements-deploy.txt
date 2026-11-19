@@ -1,0 +1,9 @@
+# Production: ONNX Runtime instead of PyTorch (~150 MB RAM instead of ~1 GB),
+# so the API fits free hosting tiers like Render's 512 MB instance.
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+pillow>=10.3
+numpy>=1.26
+opencv-python-headless>=4.9
+onnxruntime>=1.18
